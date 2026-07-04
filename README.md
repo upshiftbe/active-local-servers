@@ -10,8 +10,8 @@ A local web dashboard for Windows that lists active dev servers (listening TCP p
 ## Quick start (development)
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open **http://localhost:5173** in your browser. The Vite dev server proxies API requests to the backend on port 4711.
@@ -19,9 +19,9 @@ Open **http://localhost:5173** in your browser. The Vite dev server proxies API 
 ## Production-style (single port)
 
 ```bash
-npm install
-npm run build
-npm start
+pnpm install
+pnpm build
+pnpm start
 ```
 
 Open **http://127.0.0.1:4711** — the API and built UI are served together.

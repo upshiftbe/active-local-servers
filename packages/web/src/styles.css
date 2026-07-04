@@ -97,6 +97,32 @@ body {
   border-color: var(--danger-hover);
 }
 
+.btn-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  text-decoration: none;
+  color: var(--accent);
+  border-color: var(--border);
+}
+
+.btn-open:hover {
+  border-color: var(--accent);
+  background: rgba(91, 141, 239, 0.12);
+}
+
+.col-open {
+  width: 3rem;
+  padding-right: 0.5rem !important;
+}
+
+.server-table th.col-open {
+  width: 3rem;
+}
+
 .banner {
   padding: 0.75rem 1rem;
   border-radius: 6px;

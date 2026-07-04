@@ -1,13 +1,11 @@
 {
   "name": "active-local-servers",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@10.6.5",
   "scripts": {
-    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w @als/server\" \"npm run dev -w @als/web\"",
-    "build": "npm run build -w @als/shared && npm run build -w @als/web && npm run build -w @als/server",
-    "start": "npm run start -w @als/server"
+    "dev": "concurrently -n server,web -c blue,green \"pnpm -F @als/server dev\" \"pnpm -F @als/web dev\"",
+    "build": "pnpm -F @als/shared build && pnpm -F @als/web build && pnpm -F @als/server build",
+    "start": "pnpm -F @als/server start"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
