@@ -1,0 +1,16 @@
+{
+  "name": "active-local-servers",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w @als/server\" \"npm run dev -w @als/web\"",
+    "build": "npm run build -w @als/shared && npm run build -w @als/web && npm run build -w @als/server",
+    "start": "npm run start -w @als/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.8.2"
+  }
+}
