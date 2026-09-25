@@ -17,11 +17,17 @@ pub struct KillResponse {
 
 impl KillResponse {
     pub fn ok(message: impl Into<String>) -> Self {
-        Self { success: true, message: message.into() }
+        Self {
+            success: true,
+            message: message.into(),
+        }
     }
 
     pub fn err(message: impl Into<String>) -> Self {
-        Self { success: false, message: message.into() }
+        Self {
+            success: false,
+            message: message.into(),
+        }
     }
 }
 
@@ -36,9 +42,15 @@ pub fn stop_process(pid: u32, name: &str) -> KillResponse {
 
     match kill(target, Signal::SIGTERM) {
         Ok(()) => {}
-        Err(Errno::ESRCH) => return KillResponse::err(format!("Process PID {pid} is no longer running.")),
-        Err(Errno::EPERM) => return KillResponse::err(format!("Not permitted to stop {name} (PID {pid}).")),
-        Err(error) => return KillResponse::err(format!("Failed to stop {name} (PID {pid}): {error}.")),
+        Err(Errno::ESRCH) => {
+            return KillResponse::err(format!("Process PID {pid} is no longer running."))
+        }
+        Err(Errno::EPERM) => {
+            return KillResponse::err(format!("Not permitted to stop {name} (PID {pid})."))
+        }
+        Err(error) => {
+            return KillResponse::err(format!("Failed to stop {name} (PID {pid}): {error}."))
+        }
     }
 
     let deadline = Instant::now() + GRACE_PERIOD;
@@ -50,8 +62,12 @@ pub fn stop_process(pid: u32, name: &str) -> KillResponse {
     }
 
     match kill(target, Signal::SIGKILL) {
-        Ok(()) | Err(Errno::ESRCH) => KillResponse::ok(format!("Force-stopped {name} (PID {pid}) after it ignored SIGTERM.")),
-        Err(error) => KillResponse::err(format!("Failed to force-stop {name} (PID {pid}): {error}.")),
+        Ok(()) | Err(Errno::ESRCH) => KillResponse::ok(format!(
+            "Force-stopped {name} (PID {pid}) after it ignored SIGTERM."
+        )),
+        Err(error) => {
+            KillResponse::err(format!("Failed to force-stop {name} (PID {pid}): {error}."))
+        }
     }
 }
 

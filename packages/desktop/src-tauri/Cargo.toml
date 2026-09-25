@@ -21,3 +21,8 @@ serde_json = "1"
 listeners = "0.6"
 sysinfo = "0.39"
 nix = { version = "0.31", features = ["signal", "user"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "std"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["NSGeometry"] }

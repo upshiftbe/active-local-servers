@@ -15,13 +15,9 @@ jobs:
           - platform: macos-latest
             args: --target universal-apple-darwin
             rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
-            bundle-dir: packages/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg
           - platform: ubuntu-22.04
             args: ''
             rust-targets: ''
-            bundle-dir: |
-              packages/desktop/src-tauri/target/release/bundle/deb
-              packages/desktop/src-tauri/target/release/bundle/appimage
 
     runs-on: ${{ matrix.platform }}
 
@@ -55,10 +51,18 @@ jobs:
         working-directory: packages/desktop/src-tauri
         run: cargo test
 
+      - name: Test release copy
+        run: node --test scripts/copy-release.test.mjs
+
+      - name: App version
+        id: version
+        run: echo "version=$(node -p "JSON.parse(require('fs').readFileSync('packages/desktop/src-tauri/tauri.conf.json','utf8')).version")" >> "$GITHUB_OUTPUT"
+
       - name: Build
-        run: pnpm -F @als/desktop tauri build ${{ matrix.args }}
+        run: node scripts/desktop-build.mjs ${{ matrix.args }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: active-local-servers-${{ runner.os }}
-          path: ${{ matrix.bundle-dir }}
+          name: active-local-servers-${{ steps.version.outputs.version }}-${{ runner.os }}
+          path: releases
+          if-no-files-found: error

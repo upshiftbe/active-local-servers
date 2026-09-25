@@ -1,8 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { KillResponse, ServerInfo } from '@als/shared';
 
-export function listServers(): Promise<ServerInfo[]> {
-  return invoke<ServerInfo[]>('list_servers');
+export function listServers(fresh = false): Promise<ServerInfo[]> {
+  return invoke<ServerInfo[]>('list_servers', { fresh });
 }
 
 export function stopServer(pid: number): Promise<KillResponse> {

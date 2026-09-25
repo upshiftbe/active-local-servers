@@ -24,9 +24,9 @@ export function App() {
   const [autostart, setAutostart] = useState<boolean | null>(null);
   const intervalRef = useRef<number | undefined>(undefined);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (fresh = false) => {
     try {
-      setServers(await listServers());
+      setServers(await listServers(fresh));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -38,7 +38,7 @@ export function App() {
   useEffect(() => {
     const startPolling = () => {
       if (intervalRef.current !== undefined) return;
-      intervalRef.current = window.setInterval(() => void refresh(), POLL_INTERVAL_MS);
+      intervalRef.current = window.setInterval(() => void refresh(true), POLL_INTERVAL_MS);
     };
 
     const stopPolling = () => {
@@ -47,7 +47,7 @@ export function App() {
     };
 
     const handleShown = () => {
-      void refresh();
+      void refresh(true);
       startPolling();
     };
 
@@ -115,7 +115,7 @@ export function App() {
       const result = await stopServer(server.pid);
       setNotice({ kind: result.success ? 'info' : 'error', text: result.message });
       setConfirmKey(null);
-      await refresh();
+      await refresh(true);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
     } finally {
@@ -142,7 +142,7 @@ export function App() {
           <h1>Local servers</h1>
           <p className='subtitle'>{loading ? 'Scanning…' : count === 1 ? '1 running' : `${count} running`}</p>
         </div>
-        <button type='button' className='btn btn-icon' onClick={() => void refresh()} title='Refresh' aria-label='Refresh'>
+        <button type='button' className='btn btn-icon' onClick={() => void refresh(true)} title='Refresh' aria-label='Refresh'>
           ↻
         </button>
       </header>

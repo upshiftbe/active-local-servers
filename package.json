@@ -7,7 +7,7 @@
     "build": "pnpm -F @als/shared build && pnpm -F @als/web build && pnpm -F @als/server build",
     "start": "pnpm -F @als/server start",
     "desktop:dev": "pnpm -F @als/desktop tauri dev",
-    "desktop:build": "pnpm -F @als/desktop tauri build"
+    "desktop:build": "node scripts/desktop-build.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

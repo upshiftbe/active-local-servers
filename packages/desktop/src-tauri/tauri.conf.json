@@ -15,7 +15,7 @@
       {
         "label": "popover",
         "title": "Active Local Servers",
-        "width": 460,
+        "width": 600,
         "height": 560,
         "resizable": false,
         "decorations": false,

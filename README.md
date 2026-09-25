@@ -81,8 +81,10 @@ cd packages/desktop/src-tauri && cargo test
 pnpm desktop:build
 ```
 
-- **macOS:** produces `Active Local Servers.app` and a `.dmg` in `packages/desktop/src-tauri/target/release/bundle/`. The build is not code-signed, so the first time you open it, right-click the app → **Open**.
-- **Linux:** produces a `.deb` and an `.AppImage`. You have to build on Linux (or use the `Desktop app` GitHub Actions workflow, which builds both platforms). Build dependencies on Debian/Ubuntu:
+The latest build is copied to `releases/` at the repo root. Filenames include the version from `packages/desktop/src-tauri/tauri.conf.json`, for example `Active-Local-Servers-0.1.0-aarch64.dmg`. A new build replaces the previous file of the same kind, so that folder always holds the latest.
+
+- **macOS:** `releases/Active-Local-Servers-<version>-<arch>.app` and a `.dmg`. The build is not code-signed, so the first time you open it, right-click the app → **Open**.
+- **Linux:** a `.deb` and an `.AppImage` in the same folder. You have to build on Linux (or use the `Desktop app` GitHub Actions workflow, which builds both platforms). Build dependencies on Debian/Ubuntu:
 
   ```bash
   sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
@@ -103,4 +105,6 @@ packages/
   server/   Fastify API + Windows detection/kill
   web/      React + Vite dashboard (Windows)
   desktop/  Tauri 2 menubar app (macOS/Linux): React popover + Rust backend in src-tauri/
+
+releases/   Latest versioned desktop build (.app, .dmg, .deb, .AppImage)
 ```

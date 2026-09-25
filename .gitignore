@@ -3,5 +3,7 @@ dist/
 *.log
 .DS_Store
 packages/desktop/src-tauri/target/
+releases/*
+!releases/.gitkeep
 packages/desktop/src-tauri/gen/
 *.tsbuildinfo

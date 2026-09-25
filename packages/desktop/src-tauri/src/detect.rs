@@ -11,16 +11,74 @@ use crate::safety::{is_protected_process_name, is_proxy_process};
 const DEV_PORT_MIN: u16 = 1024;
 
 const DEV_PROCESS_NAMES: &[&str] = &[
-    "node", "python", "python3", "java", "dotnet", "php", "php-fpm", "ruby", "go", "deno", "bun", "nginx",
-    "httpd", "caddy", "cargo", "rustc", "esbuild", "webpack", "vite", "uvicorn", "gunicorn", "hypercorn",
-    "flask", "rails", "puma", "unicorn", "postgres", "mysqld", "mongod", "redis-server", "elixir", "beam.smp",
-    "hugo", "jekyll", "air", "wrangler", "workerd", "miniflare", "turbo",
+    "node",
+    "python",
+    "python3",
+    "java",
+    "dotnet",
+    "php",
+    "php-fpm",
+    "ruby",
+    "go",
+    "deno",
+    "bun",
+    "nginx",
+    "httpd",
+    "caddy",
+    "cargo",
+    "rustc",
+    "esbuild",
+    "webpack",
+    "vite",
+    "uvicorn",
+    "gunicorn",
+    "hypercorn",
+    "flask",
+    "rails",
+    "puma",
+    "unicorn",
+    "postgres",
+    "mysqld",
+    "mongod",
+    "redis-server",
+    "elixir",
+    "beam.smp",
+    "hugo",
+    "jekyll",
+    "air",
+    "wrangler",
+    "workerd",
+    "miniflare",
+    "turbo",
 ];
 
 const DEV_COMMAND_HINTS: &[&str] = &[
-    "vite", "next", "webpack", "express", "fastify", "nuxt", "remix", "astro", "http-server", "live-server", "tsx",
-    "ts-node", "nodemon", "start-server", "dev-server", "npm run dev", "pnpm dev", "yarn dev", "bun dev",
-    "http.server", "manage.py runserver", "flask run", "uvicorn", "rails s", "storybook", "jupyter",
+    "vite",
+    "next",
+    "webpack",
+    "express",
+    "fastify",
+    "nuxt",
+    "remix",
+    "astro",
+    "http-server",
+    "live-server",
+    "tsx",
+    "ts-node",
+    "nodemon",
+    "start-server",
+    "dev-server",
+    "npm run dev",
+    "pnpm dev",
+    "yarn dev",
+    "bun dev",
+    "http.server",
+    "manage.py runserver",
+    "flask run",
+    "uvicorn",
+    "rails s",
+    "storybook",
+    "jupyter",
 ];
 
 #[derive(Debug, Clone, Serialize)]
@@ -64,7 +122,10 @@ pub fn normalize_host(host: &str) -> String {
 }
 
 pub fn is_allowed_host(host: &str) -> bool {
-    matches!(normalize_host(host).as_str(), "127.0.0.1" | "0.0.0.0" | "::" | "::1" | "localhost")
+    matches!(
+        normalize_host(host).as_str(),
+        "127.0.0.1" | "0.0.0.0" | "::" | "::1" | "localhost"
+    )
 }
 
 /// `python3.12` → `python3`, `Python` → `python`.
@@ -88,7 +149,11 @@ pub fn looks_like_dev_server(listener: &RawListener) -> bool {
         return true;
     }
 
-    let command = listener.command_line.as_deref().unwrap_or_default().to_lowercase();
+    let command = listener
+        .command_line
+        .as_deref()
+        .unwrap_or_default()
+        .to_lowercase();
     if command.is_empty() {
         return false;
     }
@@ -117,7 +182,8 @@ pub fn project_from_cwd(cwd: &str) -> Option<String> {
             return None;
         }
     }
-    path.file_name().map(|name| name.to_string_lossy().into_owned())
+    path.file_name()
+        .map(|name| name.to_string_lossy().into_owned())
 }
 
 pub fn current_uid() -> u32 {
@@ -136,14 +202,28 @@ fn process_refresh_kind() -> ProcessRefreshKind {
 pub fn process_details(
     system: &mut System,
     pids: &[u32],
-) -> BTreeMap<u32, (Option<String>, Option<String>, Option<String>, Option<String>, Option<u32>)> {
+) -> BTreeMap<
+    u32,
+    (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<u32>,
+    ),
+> {
     let sys_pids: Vec<Pid> = pids.iter().map(|pid| Pid::from_u32(*pid)).collect();
-    system.refresh_processes_specifics(ProcessesToUpdate::Some(&sys_pids), true, process_refresh_kind());
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::Some(&sys_pids),
+        true,
+        process_refresh_kind(),
+    );
 
     pids.iter()
         .filter_map(|pid| {
             let process = system.process(Pid::from_u32(*pid))?;
-            let name = Some(process.name().to_string_lossy().into_owned()).filter(|n| !n.is_empty());
+            let name =
+                Some(process.name().to_string_lossy().into_owned()).filter(|n| !n.is_empty());
             let path = process.exe().map(|p| p.to_string_lossy().into_owned());
             let cmd = process
                 .cmd()
@@ -152,7 +232,10 @@ pub fn process_details(
                 .collect::<Vec<_>>()
                 .join(" ");
             let command_line = Some(cmd).filter(|c| !c.is_empty());
-            let cwd = process.cwd().map(|p| p.to_string_lossy().into_owned()).filter(|c| !c.is_empty());
+            let cwd = process
+                .cwd()
+                .map(|p| p.to_string_lossy().into_owned())
+                .filter(|c| !c.is_empty());
             let uid = process.user_id().map(|uid| **uid);
             Some((*pid, (name, path, command_line, cwd, uid)))
         })
@@ -166,7 +249,13 @@ fn collect_raw_listeners(system: &mut System) -> Result<Vec<RawListener>, String
     let sockets: Vec<_> = all
         .into_iter()
         .filter(|l| l.protocol == Protocol::TCP && l.state == SocketState::Listen)
-        .filter(|l| seen.insert((l.process.pid, l.socket.port(), normalize_host(&l.socket.ip().to_string()))))
+        .filter(|l| {
+            seen.insert((
+                l.process.pid,
+                l.socket.port(),
+                normalize_host(&l.socket.ip().to_string()),
+            ))
+        })
         .collect();
 
     let mut pids: Vec<u32> = sockets.iter().map(|l| l.process.pid).collect();
@@ -179,7 +268,8 @@ fn collect_raw_listeners(system: &mut System) -> Result<Vec<RawListener>, String
     Ok(sockets
         .into_iter()
         .map(|l| {
-            let (name, path, command_line, cwd, owner) = details.get(&l.process.pid).cloned().unwrap_or_default();
+            let (name, path, command_line, cwd, owner) =
+                details.get(&l.process.pid).cloned().unwrap_or_default();
             let fallback_path = Some(l.process.path.clone()).filter(|p| !p.is_empty());
             RawListener {
                 pid: l.process.pid,
@@ -219,14 +309,21 @@ pub fn detect_servers(system: &mut System, self_pid: u32) -> Result<Vec<ServerIn
 
     let mut ports_by_pid: BTreeMap<u32, Vec<u16>> = BTreeMap::new();
     for listener in &listeners {
-        ports_by_pid.entry(listener.pid).or_default().push(listener.port);
+        ports_by_pid
+            .entry(listener.pid)
+            .or_default()
+            .push(listener.port);
     }
 
     // `dedupe_dual_stack` returns rows sorted by (port, pid).
     Ok(listeners
         .into_iter()
         .map(|l| {
-            let mut sibling_ports: Vec<u16> = ports_by_pid[&l.pid].iter().copied().filter(|p| *p != l.port).collect();
+            let mut sibling_ports: Vec<u16> = ports_by_pid[&l.pid]
+                .iter()
+                .copied()
+                .filter(|p| *p != l.port)
+                .collect();
             sibling_ports.sort_unstable();
             sibling_ports.dedup();
             let project = l.cwd.as_deref().and_then(project_from_cwd);
@@ -283,17 +380,42 @@ mod tests {
     #[test]
     fn recognizes_dev_servers_by_name_and_command() {
         assert!(looks_like_dev_server(&listener("node", 5173, "::1", None)));
-        assert!(looks_like_dev_server(&listener("python3.12", 8000, "0.0.0.0", None)));
-        assert!(looks_like_dev_server(&listener("Python", 8000, "0.0.0.0", Some("python -m http.server"))));
-        assert!(looks_like_dev_server(&listener("my-binary", 8080, "127.0.0.1", Some("./my-binary serve --port 8080"))));
-        assert!(!looks_like_dev_server(&listener("Spotify", 57621, "0.0.0.0", Some("/Applications/Spotify.app"))));
+        assert!(looks_like_dev_server(&listener(
+            "python3.12",
+            8000,
+            "0.0.0.0",
+            None
+        )));
+        assert!(looks_like_dev_server(&listener(
+            "Python",
+            8000,
+            "0.0.0.0",
+            Some("python -m http.server")
+        )));
+        assert!(looks_like_dev_server(&listener(
+            "my-binary",
+            8080,
+            "127.0.0.1",
+            Some("./my-binary serve --port 8080")
+        )));
+        assert!(!looks_like_dev_server(&listener(
+            "Spotify",
+            57621,
+            "0.0.0.0",
+            Some("/Applications/Spotify.app")
+        )));
     }
 
     #[test]
     fn filters_out_privileged_ports_foreign_users_and_protected_processes() {
         assert!(should_include(&listener("node", 3000, "127.0.0.1", None)));
         assert!(!should_include(&listener("node", 80, "127.0.0.1", None)));
-        assert!(!should_include(&listener("ControlCenter", 7000, "0.0.0.0", Some("serve"))));
+        assert!(!should_include(&listener(
+            "ControlCenter",
+            7000,
+            "0.0.0.0",
+            Some("serve")
+        )));
 
         let mut foreign = listener("node", 3000, "127.0.0.1", None);
         foreign.owned_by_current_user = false;
@@ -302,7 +424,10 @@ mod tests {
 
     #[test]
     fn derives_project_from_cwd() {
-        assert_eq!(project_from_cwd("/Users/me/code/my-app").as_deref(), Some("my-app"));
+        assert_eq!(
+            project_from_cwd("/Users/me/code/my-app").as_deref(),
+            Some("my-app")
+        );
         assert_eq!(project_from_cwd("/"), None);
     }
 

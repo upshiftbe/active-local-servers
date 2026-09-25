@@ -43,7 +43,9 @@ pub fn is_protected_process_name(name: &str) -> bool {
 
 pub fn is_proxy_process(name: &str) -> bool {
     let lower = name.to_lowercase();
-    PROXY_PROCESS_NAMES.contains(&lower.as_str()) || lower.contains("docker") || lower.contains("orbstack")
+    PROXY_PROCESS_NAMES.contains(&lower.as_str())
+        || lower.contains("docker")
+        || lower.contains("orbstack")
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -52,7 +54,12 @@ pub enum KillGuard {
     Denied(String),
 }
 
-pub fn validate_kill_target(pid: u32, process_name: &str, self_pid: u32, owned_by_current_user: bool) -> KillGuard {
+pub fn validate_kill_target(
+    pid: u32,
+    process_name: &str,
+    self_pid: u32,
+    owned_by_current_user: bool,
+) -> KillGuard {
     if pid == self_pid {
         return KillGuard::Denied("Cannot stop the Active Local Servers app itself.".into());
     }
@@ -62,11 +69,15 @@ pub fn validate_kill_target(pid: u32, process_name: &str, self_pid: u32, owned_b
     }
 
     if is_protected_process_name(process_name) {
-        return KillGuard::Denied(format!("Process \"{process_name}\" is protected and cannot be stopped."));
+        return KillGuard::Denied(format!(
+            "Process \"{process_name}\" is protected and cannot be stopped."
+        ));
     }
 
     if !owned_by_current_user {
-        return KillGuard::Denied(format!("Process \"{process_name}\" (PID {pid}) belongs to another user."));
+        return KillGuard::Denied(format!(
+            "Process \"{process_name}\" (PID {pid}) belongs to another user."
+        ));
     }
 
     KillGuard::Allowed
@@ -78,25 +89,46 @@ mod tests {
 
     #[test]
     fn refuses_self_and_system_pids() {
-        assert!(matches!(validate_kill_target(42, "node", 42, true), KillGuard::Denied(_)));
-        assert!(matches!(validate_kill_target(1, "node", 42, true), KillGuard::Denied(_)));
-        assert!(matches!(validate_kill_target(0, "node", 42, true), KillGuard::Denied(_)));
+        assert!(matches!(
+            validate_kill_target(42, "node", 42, true),
+            KillGuard::Denied(_)
+        ));
+        assert!(matches!(
+            validate_kill_target(1, "node", 42, true),
+            KillGuard::Denied(_)
+        ));
+        assert!(matches!(
+            validate_kill_target(0, "node", 42, true),
+            KillGuard::Denied(_)
+        ));
     }
 
     #[test]
     fn refuses_protected_names_case_insensitively() {
-        assert!(matches!(validate_kill_target(500, "ControlCenter", 42, true), KillGuard::Denied(_)));
-        assert!(matches!(validate_kill_target(500, "systemd", 42, true), KillGuard::Denied(_)));
+        assert!(matches!(
+            validate_kill_target(500, "ControlCenter", 42, true),
+            KillGuard::Denied(_)
+        ));
+        assert!(matches!(
+            validate_kill_target(500, "systemd", 42, true),
+            KillGuard::Denied(_)
+        ));
     }
 
     #[test]
     fn refuses_other_users_processes() {
-        assert!(matches!(validate_kill_target(500, "node", 42, false), KillGuard::Denied(_)));
+        assert!(matches!(
+            validate_kill_target(500, "node", 42, false),
+            KillGuard::Denied(_)
+        ));
     }
 
     #[test]
     fn allows_regular_dev_process() {
-        assert_eq!(validate_kill_target(500, "node", 42, true), KillGuard::Allowed);
+        assert_eq!(
+            validate_kill_target(500, "node", 42, true),
+            KillGuard::Allowed
+        );
     }
 
     #[test]
