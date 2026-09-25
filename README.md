@@ -1,6 +1,9 @@
 # Active Local Servers
 
-A local web dashboard for Windows that lists active dev servers (listening TCP ports) and lets you kill them safely.
+Lists active dev servers (listening TCP ports) and lets you open or stop them.
+
+- **Desktop app (macOS / Linux):** a menubar/tray app, see [Desktop app](#desktop-app-macos--linux).
+- **Web dashboard (Windows):** a local web dashboard, described below.
 
 ## Prerequisites
 
@@ -51,11 +54,53 @@ Open **http://127.0.0.1:4711** — the API and built UI are served together.
 | -------- | ------- | ----------------------------------- |
 | `PORT`   | `4711`  | API (and production UI) listen port |
 
+## Desktop app (macOS / Linux)
+
+A menubar (tray) app built with Tauri 2. Click the icon to see your running local servers, grouped by project folder, each with **Open** and **Stop**. On macOS the number of running servers is shown next to the icon.
+
+### Develop
+
+Requires Node.js 20+, pnpm and a [Rust toolchain](https://rustup.rs).
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+To iterate on the popover UI in a browser with mock data, run `pnpm -F @als/desktop dev` and open http://localhost:1420.
+
+Rust unit tests (filters, safety guard, stop behavior):
+
+```bash
+cd packages/desktop/src-tauri && cargo test
+```
+
+### Build
+
+```bash
+pnpm desktop:build
+```
+
+- **macOS:** produces `Active Local Servers.app` and a `.dmg` in `packages/desktop/src-tauri/target/release/bundle/`. The build is not code-signed, so the first time you open it, right-click the app → **Open**.
+- **Linux:** produces a `.deb` and an `.AppImage`. You have to build on Linux (or use the `Desktop app` GitHub Actions workflow, which builds both platforms). Build dependencies on Debian/Ubuntu:
+
+  ```bash
+  sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+  ```
+
+### Behavior
+
+- Shows listening TCP ports ≥ 1024 on loopback/wildcard addresses, owned by **your user**, that look like dev servers (node, python, ruby, bun, deno, vite, next, uvicorn, …). System services such as ControlCenter/AirPlay are hidden.
+- **Stop** sends `SIGTERM`, waits up to 3 seconds, then sends `SIGKILL` if the process is still running. It stops the whole process, including all its ports.
+- **Launch at login** can be toggled in the popover footer.
+- **Linux:** most desktops (AppIndicator) don't report tray clicks, so open the popover via the tray menu → **Show servers**. On GNOME you need the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/) for tray icons to appear.
+
 ## Project structure
 
 ```
 packages/
   shared/   Shared TypeScript types
   server/   Fastify API + Windows detection/kill
-  web/      React + Vite dashboard
+  web/      React + Vite dashboard (Windows)
+  desktop/  Tauri 2 menubar app (macOS/Linux): React popover + Rust backend in src-tauri/
 ```

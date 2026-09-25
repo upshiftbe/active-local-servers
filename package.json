@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "concurrently -n server,web -c blue,green \"pnpm -F @als/server dev\" \"pnpm -F @als/web dev\"",
     "build": "pnpm -F @als/shared build && pnpm -F @als/web build && pnpm -F @als/server build",
-    "start": "pnpm -F @als/server start"
+    "start": "pnpm -F @als/server start",
+    "desktop:dev": "pnpm -F @als/desktop tauri dev",
+    "desktop:build": "pnpm -F @als/desktop tauri build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

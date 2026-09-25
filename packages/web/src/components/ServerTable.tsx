@@ -1,4 +1,4 @@
-import type { ServerInfo } from '@als/shared';
+import { serverOpenUrl, type ServerInfo } from '@als/shared';
 
 type ServerTableProps = {
   servers: ServerInfo[];
@@ -8,17 +8,6 @@ type ServerTableProps = {
 function truncate(text: string | null, max = 80): string {
   if (!text) return '—';
   return text.length > max ? `${text.slice(0, max)}…` : text;
-}
-
-function serverOpenUrl(server: ServerInfo): string {
-  const { host, port } = server;
-
-  if (host === '0.0.0.0' || host === '::' || host === '[::]' || host === '::1' || host === '127.0.0.1') {
-    return `http://localhost:${port}`;
-  }
-
-  const openHost = host.includes(':') ? `[${host}]` : host;
-  return `http://${openHost}:${port}`;
 }
 
 export function ServerTable({ servers, onKill }: ServerTableProps) {

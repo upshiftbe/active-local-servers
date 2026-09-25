@@ -8,6 +8,8 @@ export type ServerInfo = {
   isSelf: boolean;
   isProxy: boolean;
   siblingPorts: number[];
+  cwd?: string | null;
+  project?: string | null;
 };
 
 export type ServersResponse = {
